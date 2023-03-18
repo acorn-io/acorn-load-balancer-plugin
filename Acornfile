@@ -1,0 +1,29 @@
+args: {
+	path: ""
+}
+
+containers: "load-balancer-plugin-controller": {
+	dirs: "\(args.path)": "\(args.path)"
+	
+	if !args.dev{
+		build: "."
+		command: ["--path", "\(args.path)"]
+	}	
+
+	// Setup hot-reloading for backend during development mode using
+	if args.dev {
+      workDir: "/app"
+      image: "docker.io/cosmtrek/air" // https://github.com/cosmtrek/air
+      dirs: "/app": "./"
+	  command: ["--", "--path", "\(args.path)"]
+	}
+
+	// Permissions needed for editing kubernetes resources
+	permissions: {
+		clusterRules: [{
+			verbs: ["watch", "list", "get", "patch", "update"]
+			apiGroups: [""]
+			resources: ["services"]
+		}]
+	}
+}
