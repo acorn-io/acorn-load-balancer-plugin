@@ -1,0 +1,30 @@
+name: Publish Image
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - v*
+
+jobs:
+  build_push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v3 
+
+    - name: Setup Acorn
+      uses: acorn-io/actions-setup@v2
+
+    - name: Login Acorn to ghcr.io
+      uses: acorn-io/actions-login@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build the Acorn image
+      run: acorn build -t ghcr.io/${{ github.repository }}:${{ github.ref_name }} .
+
+    - name: Push to ghcr.io
+      run: acorn push ghcr.io/${{ github.repository }}:${{ github.ref_name }}
