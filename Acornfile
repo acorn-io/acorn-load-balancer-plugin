@@ -1,18 +1,18 @@
 args: {
-	// Path to a yaml file of key:value pairs to set as annotations.
-	path: ""
-	// Comma delimited list of key=value pairs to set as annotations such as key=value,foo=bar.
+	// YAML file of key value pairs to be used as annotations (example: --file @annotations.yaml)
+    file: {}
+	// Comma delimited list of key=value pairs to set as annotations (example: key=value,foo=bar)
 	annotations: ""
 }
 
 containers: "load-balancer-plugin-controller": {
-	if args.path != "" {
-		dirs: "\(args.path)": "\(args.path)"
+	if localData.path != "" {
+		files: "/app/annotations.yaml": std.toYAML(args.file)
 	}
 	
 	if !args.dev{
 		build: "."
-		command: ["--path", "\(args.path)", "--annotations", "\(args.annotations)"]
+		command: ["--path", "\(localData.path)", "--annotations", "\(args.annotations)"]
 	}	
 
 	// Setup hot-reloading for backend during development mode using
@@ -20,7 +20,7 @@ containers: "load-balancer-plugin-controller": {
       workDir: "/app"
       image: "docker.io/cosmtrek/air" // https://github.com/cosmtrek/air
       dirs: "/app": "./"
-	  command: ["--", "--path", "\(args.path)","--annotations", "\(args.annotations)"]
+	  command: ["--", "--path", "\(localData.path)","--annotations", "\(args.annotations)"]
 	}
 
 	// Permissions needed for editing kubernetes resources
@@ -31,4 +31,8 @@ containers: "load-balancer-plugin-controller": {
 			resources: ["services"]
 		}]
 	}
+}
+
+localData: {
+	path: std.ifelse(len(args.file) != 0, "/app/annotations.yaml", "")
 }

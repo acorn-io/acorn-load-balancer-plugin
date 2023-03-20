@@ -36,7 +36,7 @@ func main() {
 
 	loadBalancerAnnotations := make(map[string]string)
 	if *path != "" {
-		logrus.Infof("Read file path %s for annotations", *path)
+		logrus.Infof("Reading file path %s for annotations", *path)
 		err := addFileAnnotations(*path, loadBalancerAnnotations)
 		if err != nil {
 			logrus.Fatal(err)
