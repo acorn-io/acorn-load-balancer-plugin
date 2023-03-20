@@ -13,8 +13,9 @@ var (
 		"acorn.io/managed": "true",
 	})
 
-	appNameLabel      = "acorn.io/app-name"
-	appNamespaceLabel = "acorn.io/app-namespace"
+	appNameLabel        = "acorn.io/app-name"
+	appNamespaceLabel   = "acorn.io/app-namespace"
+	servicePublishLabel = "acorn.io/service-publish"
 )
 
 func RegisterRoutes(router *router.Router, client kubernetes.Interface, annotations map[string]string) error {
@@ -23,7 +24,7 @@ func RegisterRoutes(router *router.Router, client kubernetes.Interface, annotati
 		annotations: annotations,
 	}
 
-	managedSelector, err := getAcornManagedSelector()
+	managedSelector, err := getAcornPublishedServiceSelector()
 	if err != nil {
 		return err
 	}
@@ -33,7 +34,7 @@ func RegisterRoutes(router *router.Router, client kubernetes.Interface, annotati
 	return nil
 }
 
-func getAcornManagedSelector() (labels.Selector, error) {
+func getAcornPublishedServiceSelector() (labels.Selector, error) {
 	r1, err := labels.NewRequirement(appNameLabel, selection.Exists, nil)
 	if err != nil {
 		return nil, err
@@ -42,6 +43,10 @@ func getAcornManagedSelector() (labels.Selector, error) {
 	if err != nil {
 		return nil, err
 	}
-	acornManagedSelector.Add(*r1, *r2)
+	r3, err := labels.NewRequirement(servicePublishLabel, selection.Equals, []string{"true"})
+	if err != nil {
+		return nil, err
+	}
+	acornManagedSelector.Add(*r1, *r2, *r3)
 	return acornManagedSelector, nil
 }

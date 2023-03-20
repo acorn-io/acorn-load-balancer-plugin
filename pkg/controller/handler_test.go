@@ -36,6 +36,9 @@ func TestHandler_AddAnnotations(t *testing.T) {
 
 			existingAnnotations := input.GetAnnotations()
 
+			expected := existingAnnotations
+			expected["foo"] = "bar"
+
 			h := Handler{
 				client:      fake.NewSimpleClientset(input),
 				annotations: map[string]string{"foo": "bar"},
@@ -48,7 +51,7 @@ func TestHandler_AddAnnotations(t *testing.T) {
 			}
 
 			if tt.shouldChange {
-				assert.Equal(t, "bar", input.GetAnnotations()["foo"])
+				assert.Equal(t, expected, input.GetAnnotations())
 			} else {
 				assert.Equal(t, existingAnnotations, input.GetAnnotations())
 			}

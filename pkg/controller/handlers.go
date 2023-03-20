@@ -25,7 +25,9 @@ func (h Handler) AddAnnotations(req router.Request, resp router.Response) error 
 	}
 
 	logrus.Infof("Updating service %v with injected annotations", service.Name)
-	service.Annotations = h.annotations
+	for key, value := range h.annotations {
+		service.Annotations[key] = value
+	}
 	if err := req.Client.Update(req.Ctx, service); err != nil {
 		return err
 	}
