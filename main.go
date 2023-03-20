@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/acorn-io/baaah/pkg/restconfig"
 	"github.com/sirupsen/logrus"
@@ -21,7 +22,8 @@ var (
 	versionFlag = flag.Bool("version", false, "print version")
 
 	// TODO - Determine default
-	path = flag.String("path", "annotations.yaml", "path to a yaml file of annotations")
+	path        = flag.String("path", "", "path to a yaml file of annotations")
+	annotations = flag.String("annotations", "", "annotations in the form of key=value,foo=bar")
 )
 
 func main() {
@@ -32,11 +34,20 @@ func main() {
 		return
 	}
 
-	logrus.Infof("Using file path %s for annotations", *path)
+	loadBalancerAnnotations := make(map[string]string)
+	if *path != "" {
+		logrus.Infof("Read file path %s for annotations", *path)
+		err := addFileAnnotations(*path, loadBalancerAnnotations)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+	}
+	if *annotations != "" {
+		err := addFlagAnnotations(*annotations, loadBalancerAnnotations)
+		if err != nil {
+			logrus.Fatal(err)
+		}
 
-	annotations, err := parseAnnotations(*path)
-	if err != nil {
-		logrus.Fatal(err)
 	}
 
 	config, err := restconfig.Default()
@@ -52,7 +63,7 @@ func main() {
 	ctx := signals.SetupSignalHandler()
 	if err := controller.Start(ctx, controller.Options{
 		K8s:         k8s,
-		Annotations: annotations,
+		Annotations: loadBalancerAnnotations,
 	}); err != nil {
 		logrus.Fatal(err)
 	}
@@ -60,25 +71,40 @@ func main() {
 	logrus.Fatal(ctx.Err())
 }
 
-func parseAnnotations(path string) (map[string]string, error) {
+func addFileAnnotations(path string, annotations map[string]string) error {
 	// Read the file
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create a struct to hold the YAML data
-	var annotations map[string]string
+	var newAnnotations map[string]string
 
 	// Unmarshal the YAML data into the struct
 	err = yaml.Unmarshal(data, &annotations)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return annotations, nil
+	for k, v := range newAnnotations {
+		annotations[k] = v
+	}
+
+	return nil
+}
+
+func addFlagAnnotations(flag string, annotations map[string]string) error {
+	for _, pair := range strings.Split(flag, ",") {
+		parsed := strings.Split(pair, "=")
+		if len(parsed) != 2 {
+			return fmt.Errorf("specified annotations are invalid")
+		}
+		annotations[parsed[0]] = parsed[1]
+	}
+	return nil
 }

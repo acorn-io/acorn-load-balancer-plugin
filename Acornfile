@@ -1,13 +1,18 @@
 args: {
+	// Path to a yaml file of key:value pairs to set as annotations.
 	path: ""
+	// Comma delimited list of key=value pairs to set as annotations such as key=value,foo=bar.
+	annotations: ""
 }
 
 containers: "load-balancer-plugin-controller": {
-	dirs: "\(args.path)": "\(args.path)"
+	if args.path != "" {
+		dirs: "\(args.path)": "\(args.path)"
+	}
 	
 	if !args.dev{
 		build: "."
-		command: ["--path", "\(args.path)"]
+		command: ["--path", "\(args.path)", "--annotations", "\(args.annotations)"]
 	}	
 
 	// Setup hot-reloading for backend during development mode using
@@ -15,7 +20,7 @@ containers: "load-balancer-plugin-controller": {
       workDir: "/app"
       image: "docker.io/cosmtrek/air" // https://github.com/cosmtrek/air
       dirs: "/app": "./"
-	  command: ["--", "--path", "\(args.path)"]
+	  command: ["--", "--path", "\(args.path)","--annotations", "\(args.annotations)"]
 	}
 
 	// Permissions needed for editing kubernetes resources

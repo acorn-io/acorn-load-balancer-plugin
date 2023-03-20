@@ -9,8 +9,7 @@ import (
 )
 
 type Options struct {
-	K8s kubernetes.Interface
-
+	K8s         kubernetes.Interface
 	Annotations map[string]string
 }
 
