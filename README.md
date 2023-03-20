@@ -1,25 +1,41 @@
 # acorn-load-balancer-plugin
 
-The Acorn Load Balancer plugin allows you to add arbitrary annotations to load-balancers that Acorn creates. This is ideal for situations that you need to configure load balancers via annotations, such as with the AWS LoadBalancerController.
+The Acorn Load Balancer plugin allows you to add arbitrary annotations to load-balancers that Acorn creates. This is ideal for situations that you need to configure load-balancers via annotations, such as with the AWS `LoadBalancerController`.
 
-### Build
+## Usage
 
-```bash
-make build
+This plugin requires Acorn to be installed as it is installed an acorn. There are two ways to specify what annotations you would like your `LoadBalancer` services to have and you can do a mix of both.
+
+### --path
+
+This flag outlines a path to a yaml file containing `key: value` pairs that will be used as annotations.
+
+For example this file:
+
+```yaml
+# ./annotations.yaml
+foo: bar
 ```
 
-### Development
+Will be used by this command:
+```bash
+acorn run ghcr.io/tylerslaton/acorn-load-balancer-plugin:main --path ./annotations.yaml
+```
 
-The best way to run the plugin is through acorn. Run 
+### --annotations
+
+If you would not like to use a file and would instead like to specify them directly you can do so with this flag. It is done in the form of `key=value,foo=bar` to specify as many as you may need.
+
+```bash
+acorn run ghcr.io/tylerslaton/acorn-load-balancer-plugin:main --annotations key=value,foo=bar
+```
+
+## Development
+
+The best way to run this plugin locally is through development mode but you will need access to a cluster with Acorn installed.
 
 ```bash
 acorn run --name controller -i .
-```
-
-### Production
-
-```bash
-acorn run ghcr.io/tylerslaton/acorn-load-balancer-plugin:main
 ```
 
 ## License
